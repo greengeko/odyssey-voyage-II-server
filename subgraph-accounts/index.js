@@ -1,6 +1,6 @@
 const { ApolloServer } = require('@apollo/server');
 const { startStandaloneServer } = require('@apollo/server/standalone');
-const { buildSubgraphSchema } = require("@apollo/subgraph");
+const { buildSubgraphSchema } = require('@apollo/subgraph');
 
 const { readFileSync } = require('fs');
 const axios = require('axios');
@@ -10,12 +10,7 @@ const { AuthenticationError } = require('./utils/errors');
 
 const typeDefs = gql(readFileSync('./schema.graphql', { encoding: 'utf-8' }));
 const resolvers = require('./resolvers');
-
-const BookingsDataSource = require('./datasources/bookings');
-const ReviewsDataSource = require('./datasources/reviews');
-const ListingsAPI = require('./datasources/listings');
 const AccountsAPI = require('./datasources/accounts');
-const PaymentsAPI = require('./datasources/payments');
 
 async function startApolloServer() {
   const server = new ApolloServer({
@@ -25,7 +20,8 @@ async function startApolloServer() {
     }),
   });
 
-  const port = 4001;
+  const port = 4002;
+  const subgraphName = 'accounts';
 
   try {
     const { url } = await startStandaloneServer(server, {
@@ -45,11 +41,7 @@ async function startApolloServer() {
         return {
           ...userInfo,
           dataSources: {
-            bookingsDb: new BookingsDataSource(),
-            reviewsDb: new ReviewsDataSource(),
-            listingsAPI: new ListingsAPI(),
             accountsAPI: new AccountsAPI(),
-            paymentsAPI: new PaymentsAPI(),
           },
         };
       },
@@ -58,7 +50,7 @@ async function startApolloServer() {
       },
     });
 
-    console.log(`🚀  Server ready at ${url}`);
+    console.log(`🚀 Subgraph ${subgraphName} running at ${url}`);
   } catch (err) {
     console.error(err);
   }
